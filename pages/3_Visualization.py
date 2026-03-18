@@ -2,6 +2,9 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 
+# ===============================
+# 🔹 SESSION STATE
+# ===============================
 if "df" not in st.session_state:
     st.session_state.df = None
 
@@ -32,66 +35,75 @@ if df.empty:
     st.stop()
 
 # ===============================
-# 🔥 PRE-BUILT INSIGHTS
+# 🔥 PRE-BUILT INSIGHTS (DYNAMIC)
 # ===============================
 st.subheader("📌 Key Insights from Dataset")
 
+categorical_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+numeric_cols = df.select_dtypes(include="number").columns.tolist()
+
 insight = st.selectbox(
-    "Choose a question",
+    "Choose an insight",
     [
-        "Most used room",
-        "Classes per day",
-        "Credit distribution",
-        "Most frequent course"
+        "Most frequent category",
+        "Distribution of numeric variable",
+        "Top categories by numeric value",
+        "Correlation heatmap"
     ]
 )
 
-# 1️⃣ MOST USED ROOM
-if insight == "Most used room":
-    if "Room" in df.columns:
-        room_counts = df["Room"].value_counts().reset_index()
-        room_counts.columns = ["Room", "Count"]
+# 1️⃣ MOST FREQUENT CATEGORY
+if insight == "Most frequent category":
 
-        fig = px.bar(room_counts, x="Room", y="Count",
-                     title="Most Used Rooms")
-        st.plotly_chart(fig)
+    if len(categorical_cols) == 0:
+        st.warning("No categorical columns available")
     else:
-        st.warning("No 'Room' column found")
+        col = st.selectbox("Select column", categorical_cols)
 
-# 2️⃣ CLASSES PER DAY
-elif insight == "Classes per day":
-    if "Day" in df.columns:
-        day_counts = df["Day"].value_counts().reset_index()
-        day_counts.columns = ["Day", "Count"]
+        counts = df[col].value_counts().reset_index()
+        counts.columns = [col, "Count"]
 
-        fig = px.bar(day_counts, x="Day", y="Count",
-                     title="Classes per Day")
+        fig = px.bar(counts, x=col, y="Count",
+                     title=f"Most Frequent Values in {col}")
         st.plotly_chart(fig)
+
+# 2️⃣ NUMERIC DISTRIBUTION
+elif insight == "Distribution of numeric variable":
+
+    if len(numeric_cols) == 0:
+        st.warning("No numeric columns available")
     else:
-        st.warning("No 'Day' column found")
+        col = st.selectbox("Select column", numeric_cols)
 
-# 3️⃣ CREDIT DISTRIBUTION
-elif insight == "Credit distribution":
-    if "Cred." in df.columns:
-        cred = df["Cred."].astype(str).str.replace(",", ".")
-        cred = pd.to_numeric(cred, errors="coerce")
-
-        fig = px.histogram(cred, title="Credit Distribution")
+        fig = px.histogram(df, x=col,
+                           title=f"Distribution of {col}")
         st.plotly_chart(fig)
+
+# 3️⃣ TOP CATEGORY VS NUMERIC
+elif insight == "Top categories by numeric value":
+
+    if len(categorical_cols) == 0 or len(numeric_cols) == 0:
+        st.warning("Need both categorical and numeric columns")
     else:
-        st.warning("No 'Cred.' column found")
+        cat = st.selectbox("Category", categorical_cols)
+        num = st.selectbox("Numeric value", numeric_cols)
 
-# 4️⃣ MOST FREQUENT COURSE
-elif insight == "Most frequent course":
-    if "Code" in df.columns:
-        course_counts = df["Code"].value_counts().reset_index()
-        course_counts.columns = ["Course", "Count"]
+        grouped = df.groupby(cat)[num].mean().reset_index()
 
-        fig = px.bar(course_counts, x="Course", y="Count",
-                     title="Most Frequent Courses")
+        fig = px.bar(grouped, x=cat, y=num,
+                     title=f"{num} by {cat}")
         st.plotly_chart(fig)
+
+# 4️⃣ HEATMAP
+elif insight == "Correlation heatmap":
+
+    if len(numeric_cols) < 2:
+        st.warning("Not enough numeric columns for heatmap")
     else:
-        st.warning("No 'Code' column found")
+        corr = df[numeric_cols].corr()
+
+        fig = px.imshow(corr, title="Correlation Matrix")
+        st.plotly_chart(fig)
 
 # ===============================
 # 🔧 CUSTOM BUILDER
@@ -104,18 +116,17 @@ chart = st.selectbox(
     ["Histogram", "Scatter", "Box", "Line", "Bar", "Heatmap"]
 )
 
-num = df.select_dtypes(include="number").columns
-
 agg = st.selectbox("Aggregation", ["None", "Mean", "Sum", "Count"])
 
 # --- BAR ---
 if chart == "Bar":
-    x = st.selectbox("Category", df.columns)
-    y = st.selectbox("Value", num)
 
-    if len(num) == 0:
-        st.warning("No numeric columns available")
+    if len(categorical_cols) == 0 or len(numeric_cols) == 0:
+        st.warning("Need categorical and numeric columns")
         st.stop()
+
+    x = st.selectbox("Category", categorical_cols)
+    y = st.selectbox("Value", numeric_cols)
 
     top_n = st.slider("Top N", 5, 50, 10)
 
@@ -137,58 +148,64 @@ if chart == "Bar":
 
 # --- SCATTER ---
 elif chart == "Scatter":
-    if len(num) < 2:
+
+    if len(numeric_cols) < 2:
         st.warning("Need at least 2 numeric columns")
         st.stop()
 
-    x = st.selectbox("X", num)
-    y = st.selectbox("Y", num)
+    x = st.selectbox("X", numeric_cols)
+    y = st.selectbox("Y", numeric_cols)
     color = st.selectbox("Color (optional)", [None] + list(df.columns))
 
     fig = px.scatter(df, x=x, y=y, color=color,
                      title=f"{y} vs {x}")
     st.plotly_chart(fig)
 
-# --- HISTOGRAM (FIXED) ---
+# --- HISTOGRAM ---
 elif chart == "Histogram":
+
     col = st.selectbox("Column", df.columns)
 
-    fig = px.histogram(df, x=col, title=f"{col} Distribution")
+    fig = px.histogram(df, x=col,
+                       title=f"{col} Distribution")
     st.plotly_chart(fig)
 
 # --- BOX ---
 elif chart == "Box":
-    if len(num) == 0:
+
+    if len(numeric_cols) == 0:
         st.warning("No numeric columns available")
         st.stop()
 
-    col = st.selectbox("Column", num)
+    col = st.selectbox("Column", numeric_cols)
 
-    fig = px.box(df, y=col, title=f"{col} Boxplot")
+    fig = px.box(df, y=col,
+                 title=f"{col} Boxplot")
     st.plotly_chart(fig)
 
 # --- LINE ---
 elif chart == "Line":
-    if len(num) == 0:
+
+    if len(numeric_cols) == 0:
         st.warning("No numeric columns available")
         st.stop()
 
     x = st.selectbox("X", df.columns)
-    y = st.selectbox("Y", num)
+    y = st.selectbox("Y", numeric_cols)
 
-    fig = px.line(df, x=x, y=y, title=f"{y} over {x}")
+    fig = px.line(df, x=x, y=y,
+                  title=f"{y} over {x}")
     st.plotly_chart(fig)
 
 # --- HEATMAP ---
 elif chart == "Heatmap":
 
-    num_df = df.select_dtypes(include="number")
-
-    if num_df.shape[1] < 2:
+    if len(numeric_cols) < 2:
         st.warning("Not enough numeric columns for correlation heatmap")
         st.stop()
 
-    corr = num_df.corr()
+    corr = df[numeric_cols].corr()
 
-    fig = px.imshow(corr, title="Correlation Matrix")
+    fig = px.imshow(corr,
+                    title="Correlation Matrix")
     st.plotly_chart(fig)
