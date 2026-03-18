@@ -1,13 +1,17 @@
 import streamlit as st
 import time
 
-st.set_page_config(page_title="AI Data Wrangler", layout="wide")
+st.set_page_config(page_title="Data Wrangler & Visualizer", layout="wide")
 
-# --- SESSION INIT ---
+# ===============================
+# 🔹 SESSION INIT
+# ===============================
 if "intro_done" not in st.session_state:
     st.session_state.intro_done = False
 
-# --- FULLSCREEN STYLE ---
+# ===============================
+# 🔹 FULLSCREEN STYLE
+# ===============================
 st.markdown("""
 <style>
 .fullscreen {
@@ -28,38 +32,51 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- INTRO SCREEN ---
+# ===============================
+# 🔹 INTRO SCREEN (SHORTER)
+# ===============================
 if not st.session_state.intro_done:
 
     st.markdown("""
     <div class="fullscreen">
-        <h1 style="font-size:70px;">🎉 Made by Violetta & Sohiba 🎉</h1>
-        <h2>(Hope it is 90+ 😄)</h2>
+        <h1 style="font-size:60px;">Data Wrangler & Visualizer</h1>
+        <h3>Interactive Data Preparation Studio</h3>
     </div>
     """, unsafe_allow_html=True)
 
-    st.balloons()
-    time.sleep(5)   # ✅ ONLY CHANGE (was 1 second)
+    time.sleep(2)   # ⏱️ reduced to 2 seconds (best practice)
 
     st.session_state.intro_done = True
     st.rerun()
 
-# --- MAIN LANDING ---
+# ===============================
+# 🔹 MAIN LANDING PAGE
+# ===============================
 st.title("AI-Assisted Data Wrangler & Visualizer")
 
 st.markdown("""
-### 📌 About this application
+### 📊 Project Overview
 
-This is an interactive data preparation studio that allows users to:
+This application provides an interactive environment for data preparation, transformation, and visualization.  
+It is designed to support users in exploring datasets efficiently and generating meaningful insights.
+
+### ⚙️ Key Features
 
 - Upload datasets (CSV, Excel, JSON)
-- Clean and transform data dynamically
+- Perform data cleaning and preprocessing
 - Handle missing values, duplicates, and outliers
-- Apply scaling and categorical transformations
-- Build dynamic visualizations
-- Export cleaned data and transformation reports
+- Transform and scale data
+- Build interactive visualizations
+- Export cleaned datasets and transformation reports
 
-👉 Use the sidebar to begin.
+### 🎯 Objective
+
+The goal of this application is to simulate a real-world data preparation workflow,  
+combining usability, flexibility, and analytical capability in a single interface.
+
+👉 Use the sidebar to navigate through the application.
 """)
 
-st.success("Created by Violetta & Sohiba")
+st.markdown("---")
+
+st.caption("Developed by Student IDs: 00017592 & 00018555")
