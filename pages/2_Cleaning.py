@@ -2,187 +2,104 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-# --- SESSION INIT ---
 if "df" not in st.session_state:
-    st.session_state.df = None
-if "log" not in st.session_state:
-    st.session_state.log = []
-
-st.title("🧹 Data Cleaning")
-
-if st.session_state.df is None:
-    st.warning("Please upload data first")
     st.stop()
 
 df = st.session_state.df.copy()
 
-# ===============================
-# 🔹 PREVIEW
-# ===============================
-st.subheader("Dataset Preview")
-st.dataframe(df.head())
+st.title("🧹 Cleaning Studio")
 
-# ===============================
-# 🔹 MISSING VALUES
-# ===============================
-st.subheader("Missing Values Handling")
+# SAVE STATE FOR UNDO
+def save_state():
+    st.session_state.history.append(df.copy())
 
-col = st.selectbox("Select column", df.columns)
-col_type = df[col].dtype
+# =====================
+# UNDO
+# =====================
+if st.button("Undo last step"):
+    if len(st.session_state.history) > 1:
+        st.session_state.history.pop()
+        st.session_state.df = st.session_state.history[-1]
+        st.rerun()
 
-st.info(f"Column type: {col_type}")
+# =====================
+# MISSING VALUES
+# =====================
+st.subheader("Missing Values")
 
-if col_type == "object":
-    method = st.selectbox("Method", ["Drop rows", "Mode", "Constant"])
-else:
-    method = st.selectbox("Method", ["Drop rows", "Mean", "Median", "Mode"])
+col = st.selectbox("Column", df.columns)
+method = st.selectbox("Method", ["Mean","Median","Mode","Forward Fill","Drop"])
 
-if method == "Constant":
-    const_value = st.text_input("Enter constant value")
+if st.button("Apply Missing"):
+    save_state()
 
-if st.button("Apply Missing Handling"):
-
-    before = df[col].isnull().sum()
-
-    try:
-        if method == "Drop rows":
-            df = df.dropna(subset=[col])
-
-        elif method == "Mean":
-            df[col] = df[col].fillna(df[col].mean())
-
-        elif method == "Median":
-            df[col] = df[col].fillna(df[col].median())
-
-        elif method == "Mode":
-            df[col] = df[col].fillna(df[col].mode()[0])
-
-        elif method == "Constant":
-            df[col] = df[col].fillna(const_value)
-
-        after = df[col].isnull().sum()
-
-        st.session_state.df = df
-        st.session_state.log.append(
-            f"Handled missing in '{col}' using {method} (filled {before - after} values)"
-        )
-
-        st.success(f"{before - after} missing values handled")
-
-    except Exception as e:
-        st.error(f"Error: {e}")
-
-# ===============================
-# 🔹 DUPLICATES
-# ===============================
-st.subheader("Duplicate Handling")
-
-dup_count = df.duplicated().sum()
-st.write(f"Duplicate rows: {dup_count}")
-
-if st.button("Remove duplicates"):
-    before = len(df)
-    df = df.drop_duplicates()
-    removed = before - len(df)
+    if method == "Mean":
+        df[col] = df[col].fillna(df[col].mean())
+    elif method == "Median":
+        df[col] = df[col].fillna(df[col].median())
+    elif method == "Mode":
+        df[col] = df[col].fillna(df[col].mode()[0])
+    elif method == "Forward Fill":
+        df[col] = df[col].fillna(method="ffill")
+    elif method == "Drop":
+        df = df.dropna(subset=[col])
 
     st.session_state.df = df
-    st.session_state.log.append(f"Removed {removed} duplicate rows")
+    st.session_state.log.append(f"Missing handled: {col}")
 
-    st.success(f"Removed {removed} duplicate rows")
+# =====================
+# CATEGORICAL TOOLS
+# =====================
+st.subheader("Categorical Cleaning")
 
-# ===============================
-# 🔹 TYPE CONVERSION (SAFE)
-# ===============================
-st.subheader("Type Conversion (Safe)")
+cat_cols = df.select_dtypes(include="object").columns
 
-col_convert = st.selectbox("Column to convert", df.columns, key="convert")
+if len(cat_cols):
+    c = st.selectbox("Categorical column", cat_cols)
 
-st.write("Unique sample values:")
-st.write(df[col_convert].dropna().unique()[:10])
+    if st.button("Lowercase"):
+        save_state()
+        df[c] = df[c].str.lower()
 
-new_type = st.selectbox("Convert to", ["int", "float", "string"])
+    if st.button("Trim spaces"):
+        save_state()
+        df[c] = df[c].str.strip()
 
-if st.button("Apply conversion"):
-    try:
-        if new_type == "int":
-            df[col_convert] = pd.to_numeric(df[col_convert], errors="coerce").astype("Int64")
-
-        elif new_type == "float":
-            df[col_convert] = pd.to_numeric(df[col_convert], errors="coerce")
-
-        elif new_type == "string":
-            df[col_convert] = df[col_convert].astype(str)
-
-        st.session_state.df = df
-        st.session_state.log.append(f"Converted '{col_convert}' to {new_type}")
-
-        st.success("Conversion successful (invalid values converted to NaN)")
-
-    except Exception as e:
-        st.error(f"Error: {e}")
-
-# ===============================
-# 🔹 DATETIME PROCESSING
-# ===============================
-st.subheader("Datetime Processing")
-
-col_date = st.selectbox("Select column for datetime conversion", df.columns, key="date")
-
-if st.button("Convert to datetime"):
-    try:
-        df[col_date] = pd.to_datetime(df[col_date], errors="coerce")
-
-        st.session_state.df = df
-        st.session_state.log.append(f"Converted '{col_date}' to datetime")
-
-        st.success("Converted to datetime")
-
-    except Exception as e:
-        st.error(f"Error: {e}")
-
-if df[col_date].dtype == "datetime64[ns]":
-    if st.button("Extract Year/Month/Day"):
-        df[f"{col_date}_year"] = df[col_date].dt.year
-        df[f"{col_date}_month"] = df[col_date].dt.month
-        df[f"{col_date}_day"] = df[col_date].dt.day
-
-        st.session_state.df = df
-        st.session_state.log.append(f"Extracted date parts from '{col_date}'")
-
-        st.success("Date components created")
-
-# ===============================
-# 🔹 OUTLIER REMOVAL
-# ===============================
-st.subheader("Outlier Removal (IQR)")
+# =====================
+# SCALING (REQUIRED)
+# =====================
+st.subheader("Scaling")
 
 num_cols = df.select_dtypes(include=np.number).columns
 
-if len(num_cols) > 0:
-    col_outlier = st.selectbox("Numeric column", num_cols)
+if len(num_cols):
+    col_s = st.selectbox("Column to scale", num_cols)
+    method_s = st.selectbox("Scaling method", ["MinMax","Z-score"])
 
-    if st.button("Remove outliers"):
-        Q1 = df[col_outlier].quantile(0.25)
-        Q3 = df[col_outlier].quantile(0.75)
-        IQR = Q3 - Q1
+    if st.button("Apply Scaling"):
+        save_state()
 
-        before = len(df)
-
-        df = df[(df[col_outlier] >= Q1 - 1.5 * IQR) &
-                (df[col_outlier] <= Q3 + 1.5 * IQR)]
-
-        removed = before - len(df)
+        if method_s == "MinMax":
+            df[col_s] = (df[col_s] - df[col_s].min()) / (df[col_s].max() - df[col_s].min())
+        else:
+            df[col_s] = (df[col_s] - df[col_s].mean()) / df[col_s].std()
 
         st.session_state.df = df
-        st.session_state.log.append(f"Removed {removed} outliers from '{col_outlier}'")
+        st.session_state.log.append(f"Scaled {col_s}")
 
-        st.success(f"Removed {removed} outliers")
+# =====================
+# VALIDATION RULES
+# =====================
+st.subheader("Validation")
 
-else:
-    st.info("No numeric columns available")
+if len(num_cols):
+    col_v = st.selectbox("Validate column", num_cols)
+    min_v = st.number_input("Min")
+    max_v = st.number_input("Max")
 
-# ===============================
-# 🔹 FINAL PREVIEW
-# ===============================
-st.subheader("Updated Dataset")
-st.dataframe(st.session_state.df.head())
+    if st.button("Check violations"):
+        violations = df[(df[col_v] < min_v) | (df[col_v] > max_v)]
+        st.dataframe(violations)
+
+# =====================
+st.dataframe(df.head())
