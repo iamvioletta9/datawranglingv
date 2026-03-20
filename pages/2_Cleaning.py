@@ -2,104 +2,120 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
+# --- SESSION INIT ---
 if "df" not in st.session_state:
+    st.session_state.df = None
+if "log" not in st.session_state:
+    st.session_state.log = []
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+st.title("🧹 Data Cleaning")
+
+if st.session_state.df is None:
+    st.warning("Please upload data first")
     st.stop()
 
 df = st.session_state.df.copy()
 
-st.title("🧹 Cleaning Studio")
-
-# SAVE STATE FOR UNDO
-def save_state():
-    st.session_state.history.append(df.copy())
-
-# =====================
-# UNDO
-# =====================
-if st.button("Undo last step"):
+# ===============================
+# 🔹 UNDO (ADDED)
+# ===============================
+if st.button("↩ Undo last step"):
     if len(st.session_state.history) > 1:
         st.session_state.history.pop()
         st.session_state.df = st.session_state.history[-1]
         st.rerun()
 
-# =====================
-# MISSING VALUES
-# =====================
-st.subheader("Missing Values")
+# ===============================
+# 🔹 PREVIEW
+# ===============================
+st.subheader("Dataset Preview")
+st.dataframe(df.head())
 
-col = st.selectbox("Column", df.columns)
-method = st.selectbox("Method", ["Mean","Median","Mode","Forward Fill","Drop"])
+# ===============================
+# 🔹 MISSING VALUES
+# ===============================
+st.subheader("Missing Values Handling")
 
-if st.button("Apply Missing"):
-    save_state()
+col = st.selectbox("Select column", df.columns)
+col_type = df[col].dtype
 
-    if method == "Mean":
-        df[col] = df[col].fillna(df[col].mean())
-    elif method == "Median":
-        df[col] = df[col].fillna(df[col].median())
-    elif method == "Mode":
-        df[col] = df[col].fillna(df[col].mode()[0])
-    elif method == "Forward Fill":
-        df[col] = df[col].fillna(method="ffill")
-    elif method == "Drop":
-        df = df.dropna(subset=[col])
+st.info(f"Column type: {col_type}")
 
-    st.session_state.df = df
-    st.session_state.log.append(f"Missing handled: {col}")
+if col_type == "object":
+    method = st.selectbox("Method", ["Drop rows", "Mode", "Constant", "Forward Fill", "Backward Fill"])
+else:
+    method = st.selectbox("Method", ["Drop rows", "Mean", "Median", "Mode", "Forward Fill", "Backward Fill"])
 
-# =====================
-# CATEGORICAL TOOLS
-# =====================
-st.subheader("Categorical Cleaning")
+if method == "Constant":
+    const_value = st.text_input("Enter constant value")
 
-cat_cols = df.select_dtypes(include="object").columns
+if st.button("Apply Missing Handling"):
 
-if len(cat_cols):
-    c = st.selectbox("Categorical column", cat_cols)
+    st.session_state.history.append(df.copy())
 
-    if st.button("Lowercase"):
-        save_state()
-        df[c] = df[c].str.lower()
+    before = df[col].isnull().sum()
 
-    if st.button("Trim spaces"):
-        save_state()
-        df[c] = df[c].str.strip()
+    try:
+        if method == "Drop rows":
+            df = df.dropna(subset=[col])
 
-# =====================
-# SCALING (REQUIRED)
-# =====================
-st.subheader("Scaling")
+        elif method == "Mean":
+            df[col] = df[col].fillna(df[col].mean())
+
+        elif method == "Median":
+            df[col] = df[col].fillna(df[col].median())
+
+        elif method == "Mode":
+            df[col] = df[col].fillna(df[col].mode()[0])
+
+        elif method == "Constant":
+            df[col] = df[col].fillna(const_value)
+
+        elif method == "Forward Fill":
+            df[col] = df[col].fillna(method="ffill")
+
+        elif method == "Backward Fill":
+            df[col] = df[col].fillna(method="bfill")
+
+        after = df[col].isnull().sum()
+
+        st.session_state.df = df
+        st.session_state.log.append(f"Handled missing in '{col}' using {method}")
+
+        st.success(f"{before - after} missing values handled")
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+
+# ===============================
+# 🔹 SCALING (ADDED)
+# ===============================
+st.subheader("Scaling / Normalization")
 
 num_cols = df.select_dtypes(include=np.number).columns
 
-if len(num_cols):
-    col_s = st.selectbox("Column to scale", num_cols)
-    method_s = st.selectbox("Scaling method", ["MinMax","Z-score"])
+if len(num_cols) > 0:
+    col_scale = st.selectbox("Column to scale", num_cols)
+
+    method_scale = st.selectbox("Scaling method", ["Min-Max", "Z-score"])
 
     if st.button("Apply Scaling"):
-        save_state()
+        st.session_state.history.append(df.copy())
 
-        if method_s == "MinMax":
-            df[col_s] = (df[col_s] - df[col_s].min()) / (df[col_s].max() - df[col_s].min())
+        if method_scale == "Min-Max":
+            df[col_scale] = (df[col_scale] - df[col_scale].min()) / (df[col_scale].max() - df[col_scale].min())
         else:
-            df[col_s] = (df[col_s] - df[col_s].mean()) / df[col_s].std()
+            df[col_scale] = (df[col_scale] - df[col_scale].mean()) / df[col_scale].std()
 
         st.session_state.df = df
-        st.session_state.log.append(f"Scaled {col_s}")
+        st.session_state.log.append(f"Scaled '{col_scale}'")
 
-# =====================
-# VALIDATION RULES
-# =====================
-st.subheader("Validation")
+        st.success("Scaling applied")
 
-if len(num_cols):
-    col_v = st.selectbox("Validate column", num_cols)
-    min_v = st.number_input("Min")
-    max_v = st.number_input("Max")
-
-    if st.button("Check violations"):
-        violations = df[(df[col_v] < min_v) | (df[col_v] > max_v)]
-        st.dataframe(violations)
-
-# =====================
-st.dataframe(df.head())
+# ===============================
+# 🔹 FINAL PREVIEW
+# ===============================
+st.subheader("Updated Dataset")
+st.dataframe(st.session_state.df.head())
