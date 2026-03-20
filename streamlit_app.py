@@ -3,13 +3,17 @@ import time
 
 st.set_page_config(page_title="Data Wrangler & Visualizer", layout="wide")
 
-# SESSION INIT
+# ===============================
+# 🔹 SESSION INIT
+# ===============================
 if "intro_done" not in st.session_state:
     st.session_state.intro_done = False
-if "history" not in st.session_state:
-    st.session_state.history = []   # for undo
+if "history" not in st.session_state:   # ADDED (for undo feature)
+    st.session_state.history = []
 
-# STYLE
+# ===============================
+# 🔹 SIMPLE FULLSCREEN STYLE
+# ===============================
 st.markdown("""
 <style>
 .fullscreen {
@@ -30,32 +34,54 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# INTRO
+# ===============================
+# 🔹 INTRO SCREEN (5s)
+# ===============================
 if not st.session_state.intro_done:
+
     st.markdown("""
     <div class="fullscreen">
-        <h1>AI Data Wrangler & Visualizer</h1>
-        <h3>Developed by</h3>
+        <h1>Welcome to Data Wrangler & Visualizer</h1>
+        <h3>Made by</h3>
         <h2>00017592 & 00018555</h2>
     </div>
     """, unsafe_allow_html=True)
 
     st.balloons()
-    time.sleep(4)
+    time.sleep(5)
+
     st.session_state.intro_done = True
     st.rerun()
 
-# MAIN
+# ===============================
+# 🔹 MAIN LANDING PAGE
+# ===============================
 st.title("AI-Assisted Data Wrangler & Visualizer")
 
 st.markdown("""
-This application simulates a **real-world data preparation pipeline**:
+### 📊 Project Overview
 
-- Upload → Profile → Clean → Transform → Visualize → Export  
-- Fully interactive  
-- Reproducible workflow via transformation logs  
+This application provides an interactive environment for data preparation, transformation, and visualization.  
+It is designed to support users in exploring datasets efficiently and generating meaningful insights.
 
-Use sidebar to navigate.
+### ⚙️ Key Features
+
+- Upload datasets (CSV, Excel, JSON, Google Sheets)
+- Perform data cleaning and preprocessing
+- Handle missing values, duplicates, and outliers
+- Transform and scale data
+- Build interactive visualizations
+- Export cleaned datasets and transformation reports
+
+### 🎯 Objective
+
+The goal of this application is to simulate a real-world data preparation workflow,  
+combining usability, flexibility, and analytical capability in a single interface.
+
+👉 Use the sidebar to navigate through the application.
 """)
 
-st.info("Coursework Project – Data Wrangling & Visualization")
+st.markdown("---")
+
+st.info("Coursework Project – Data Wrangling & Visualization Module")
+st.caption("Developed by Student IDs: 00017592 & 00018555")
