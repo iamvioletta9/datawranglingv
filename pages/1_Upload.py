@@ -1,70 +1,75 @@
 import streamlit as st
 import pandas as pd
-import numpy as np   # ← KEPT (even if not used)
+import numpy as np
 
-# --- SESSION INIT ---
+# CACHING (REQUIRED)
+@st.cache_data
+def load_csv(file):
+    return pd.read_csv(file)
+
+@st.cache_data
+def load_excel(file):
+    return pd.read_excel(file)
+
+@st.cache_data
+def load_json(file):
+    return pd.read_json(file)
+
+# SESSION
 if "df" not in st.session_state:
     st.session_state.df = None
 if "log" not in st.session_state:
     st.session_state.log = []
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-st.title("📂 Upload & Data Profiling")
+st.title("📂 Upload & Profiling")
 
+# GOOGLE SHEETS (BONUS)
+sheet_url = st.text_input("Optional: Google Sheets URL")
+
+if sheet_url:
+    try:
+        df = pd.read_csv(sheet_url.replace("/edit#gid=", "/export?format=csv&gid="))
+        st.session_state.df = df
+        st.success("Loaded from Google Sheets")
+    except:
+        st.error("Invalid Google Sheets link")
+
+# FILE UPLOAD
 file = st.file_uploader("Upload CSV / Excel / JSON", type=["csv", "xlsx", "json"])
 
-# --- FILE LOAD ---
-if file is not None:
+if file:
     try:
         if file.name.endswith(".csv"):
-            df = pd.read_csv(file)
-
+            df = load_csv(file)
         elif file.name.endswith(".xlsx"):
-            df = pd.read_excel(file)
-
+            df = load_excel(file)
         elif file.name.endswith(".json"):
-            df = pd.read_json(file)
+            df = load_json(file)
 
-        else:
-            st.error("Unsupported file type")
-            st.stop()
-
-        # SAVE TO SESSION
         st.session_state.df = df
-        st.success("✅ File uploaded successfully!")
-
-        # ✅ LOGGING (ADDED ONLY)
+        st.session_state.history.append(df.copy())
         st.session_state.log.append("Dataset uploaded")
 
-    except Exception as e:
-        st.error(f"❌ Error loading file: {e}")
-        st.stop()
+        st.success("File uploaded")
 
-# --- DISPLAY DATA ---
+    except Exception as e:
+        st.error(e)
+
+# DISPLAY
 if st.session_state.df is not None:
     df = st.session_state.df
 
-    st.subheader("Dataset Overview")
+    st.metric("Rows", df.shape[0])
+    st.metric("Columns", df.shape[1])
+    st.metric("Duplicates", df.duplicated().sum())
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Rows", df.shape[0])
-    col2.metric("Columns", df.shape[1])
-    col3.metric("Duplicates", df.duplicated().sum())
+    st.dataframe(df.describe(include="all"))
+    st.dataframe(df.isnull().sum())
 
-    st.write("### Column Types")
-    st.dataframe(df.dtypes)
-
-    st.write("### Missing Values (%)")
-    missing = (df.isnull().sum() / len(df)) * 100
-    st.dataframe(missing)
-
-    st.write("### Preview")
-    st.dataframe(df.head())
-
-    # RESET BUTTON
     if st.button("Reset Session"):
-        # ✅ LOGGING (ADDED ONLY)
-        st.session_state.log.append("Session reset")
-
         st.session_state.df = None
         st.session_state.log = []
+        st.session_state.history = []
         st.rerun()
