@@ -2,7 +2,9 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt   # ✅ ADDED (required by CW)
+import matplotlib.pyplot as plt
+import mpld3
+from streamlit.components.v1 import html
 
 # ===============================
 # 🔹 SESSION
@@ -184,14 +186,14 @@ try:
     else:
         st.info("No numeric data available for interpretation")
 
-except Exception as e:
+except Exception:
     st.warning("Could not generate interpretation")
 
 # ===============================
-# 🔹 MATPLOTLIB (ADDED REQUIRED)
+# 🔹 MATPLOTLIB (NOW INTERACTIVE)
 # ===============================
 st.markdown("---")
-st.subheader("📉 Matplotlib Chart (Required)")
+st.subheader("📉 Matplotlib Chart (Interactive)")
 
 if numeric_cols:
     col_m = st.selectbox("Column for matplotlib chart", numeric_cols, key="mpl_col")
@@ -200,4 +202,5 @@ if numeric_cols:
     ax.hist(df[col_m])
     ax.set_title(f"Matplotlib Histogram of {col_m}")
 
-    st.pyplot(fig)
+    html_fig = mpld3.fig_to_html(fig)
+    html(html_fig, height=500)
