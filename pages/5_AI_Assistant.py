@@ -1,89 +1,127 @@
 import streamlit as st
 import pandas as pd
+import re
 
 # ===============================
-# 🔹 SESSION
+# SESSION
 # ===============================
 if "df" not in st.session_state:
-    st.session_state.df = None
-
-st.title("🤖 AI Data Assistant (Smart Insights)")
-
-if st.session_state.df is None:
-    st.warning("Upload dataset first")
+    st.warning("Upload data first")
     st.stop()
 
-df = st.session_state.df
+if "log" not in st.session_state:
+    st.session_state.log = []
+
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+df = st.session_state.df.copy()
+
+st.title("🤖 AI Data Assistant")
+
+st.info("Type a command like: 'fill missing price with median and lowercase category'")
+
+user_input = st.text_area("Enter instruction")
 
 # ===============================
-# 🔹 BASIC ANALYSIS
+# SIMPLE NLP PARSER (RULE-BASED)
 # ===============================
-numeric_cols = df.select_dtypes(include="number").columns
-categorical_cols = df.select_dtypes(include=["object"]).columns
+def parse_command(text, df):
+
+    actions = []
+
+    text = text.lower()
+
+    # ---- Missing values ----
+    if "fill" in text and "missing" in text:
+        for col in df.columns:
+            if col.lower() in text:
+
+                if "mean" in text:
+                    actions.append(("fill_mean", col))
+                elif "median" in text:
+                    actions.append(("fill_median", col))
+                elif "mode" in text:
+                    actions.append(("fill_mode", col))
+
+    # ---- Lowercase categorical ----
+    if "lowercase" in text:
+        for col in df.select_dtypes(include="object").columns:
+            if col.lower() in text:
+                actions.append(("lowercase", col))
+
+    # ---- Drop duplicates ----
+    if "remove duplicates" in text:
+        actions.append(("drop_duplicates", None))
+
+    # ---- Scaling ----
+    if "scale" in text:
+        for col in df.select_dtypes(include="number").columns:
+            if col.lower() in text:
+                actions.append(("scale", col))
+
+    return actions
+
 
 # ===============================
-# 🔹 USER INPUT
+# APPLY ACTIONS
 # ===============================
-question = st.text_input("Ask about your dataset")
+def apply_actions(df, actions):
+
+    for action, col in actions:
+
+        if action == "fill_mean":
+            df[col] = df[col].fillna(df[col].mean())
+
+        elif action == "fill_median":
+            df[col] = df[col].fillna(df[col].median())
+
+        elif action == "fill_mode":
+            df[col] = df[col].fillna(df[col].mode()[0])
+
+        elif action == "lowercase":
+            df[col] = df[col].str.lower()
+
+        elif action == "drop_duplicates":
+            df = df.drop_duplicates()
+
+        elif action == "scale":
+            df[col] = (df[col] - df[col].mean()) / df[col].std()
+
+    return df
+
 
 # ===============================
-# 🔹 RESPONSE ENGINE (NO API)
+# RUN AI
 # ===============================
-def generate_answer(q):
-    q = q.lower()
+if st.button("Analyze Command"):
 
-    # 1️⃣ missing values
-    if "missing" in q:
-        missing = df.isnull().sum().sum()
-        return f"There are {missing} missing values in the dataset."
+    actions = parse_command(user_input, df)
 
-    # 2️⃣ duplicates
-    elif "duplicate" in q:
-        dup = df.duplicated().sum()
-        return f"There are {dup} duplicate rows."
-
-    # 3️⃣ numeric summary
-    elif "summary" in q or "describe" in q:
-        return df.describe().to_string()
-
-    # 4️⃣ correlations
-    elif "correlation" in q and len(numeric_cols) > 1:
-        corr = df[numeric_cols].corr()
-        return "Correlation matrix:\n" + corr.to_string()
-
-    # 5️⃣ most important column
-    elif "important" in q or "impact" in q:
-        if len(numeric_cols) > 0:
-            return f"Column '{numeric_cols[0]}' may be important based on numeric analysis."
-        else:
-            return "No numeric columns to evaluate importance."
-
-    # 6️⃣ outliers
-    elif "outlier" in q:
-        return "Outliers can be detected using IQR method in Cleaning section."
-
-    # 7️⃣ general insights
-    elif "insight" in q or "pattern" in q:
-        return f"""
-Dataset has {df.shape[0]} rows and {df.shape[1]} columns.
-- Numeric columns: {len(numeric_cols)}
-- Categorical columns: {len(categorical_cols)}
-Look for trends in visualizations for deeper insights.
-"""
-
-    # fallback
+    if not actions:
+        st.warning("No valid actions detected")
     else:
-        return "Try asking about: missing values, duplicates, summary, correlation, insights."
+        st.write("### Suggested Actions:")
+        for a in actions:
+            st.write(f"- {a}")
+
+        # CONFIRMATION (VERY IMPORTANT FOR MARKS)
+        if st.button("Apply Actions"):
+
+            st.session_state.history.append(df.copy())
+
+            df = apply_actions(df, actions)
+
+            st.session_state.df = df
+
+            for a in actions:
+                st.session_state.log.append(f"AI: {a}")
+
+            st.success("Actions applied successfully")
+            st.rerun()
 
 # ===============================
-# 🔹 OUTPUT
+# PREVIEW
 # ===============================
-if question:
-    answer = generate_answer(question)
-
-    st.subheader("📊 Answer")
-    st.text(answer)
-
-    # OPTIONAL LOGGING
-    if "log" in st.session_state:
-        st.session_state.log.append("AI assistant used")
+st.subheader("Preview")
+st.dataframe(df.head())
