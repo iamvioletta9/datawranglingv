@@ -89,10 +89,9 @@ def card(icon, title, desc):
     """, unsafe_allow_html=True)
 
 # =============================================================================
-# UPLOAD
+# UPLOAD PAGE ONLY
 # =============================================================================
 if page == "Upload":
-
     st.title("DataWrangler Pro")
     st.caption("AI-powered data preparation & visualization workspace")
 
@@ -114,6 +113,7 @@ if page == "Upload":
 
     st.markdown("---")
 
+    # Uploader exists only here
     file = st.file_uploader("Upload dataset", type=["csv", "xlsx", "json"])
 
     if file:
@@ -131,7 +131,6 @@ if page == "Upload":
             if df is not None:
                 st.session_state.df = df
                 st.success("File uploaded successfully")
-
                 st.write("Shape:", df.shape)
                 st.write("Columns:", list(df.columns))
                 st.dataframe(df.head())
@@ -167,9 +166,7 @@ elif page == "Visualization":
         st.warning("Upload data first")
     else:
         df = st.session_state.df
-
         col = st.selectbox("Select column", df.columns)
-
         st.bar_chart(df[col])
 
 # =============================================================================
