@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 
 # =============================================================================
@@ -20,11 +19,8 @@ if "df" not in st.session_state:
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
-if "confetti_shown" not in st.session_state:
-    st.session_state.confetti_shown = False
-
 # =============================================================================
-# THEME (UNCHANGED — YOUR VERSION)
+# THEME (UNCHANGED)
 # =============================================================================
 def apply_theme():
     if st.session_state.dark_mode:
@@ -55,32 +51,6 @@ def apply_theme():
         """, unsafe_allow_html=True)
 
 apply_theme()
-
-# =============================================================================
-# CONFETTI (WORKING)
-# =============================================================================
-if not st.session_state.confetti_shown:
-    components.html("""
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-    <script>
-    let duration = 3000;
-    let end = Date.now() + duration;
-
-    (function frame() {
-        confetti({
-            particleCount: 6,
-            angle: 60,
-            spread: 80,
-            origin: { x: Math.random(), y: Math.random() - 0.2 }
-        });
-        if (Date.now() < end) {
-            requestAnimationFrame(frame);
-        }
-    })();
-    </script>
-    """, height=0)
-
-    st.session_state.confetti_shown = True
 
 # =============================================================================
 # SIDEBAR
