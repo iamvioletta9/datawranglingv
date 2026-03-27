@@ -1,7 +1,6 @@
 import streamlit as st
 import time
 
-# Page config must be first
 st.set_page_config(
     page_title="DataWrangler Pro",
     page_icon="✨",
@@ -10,7 +9,7 @@ st.set_page_config(
 )
 
 # ============================================================================
-# SESSION STATE INITIALIZATION
+# SESSION STATE
 # ============================================================================
 if "splash_shown" not in st.session_state:
     st.session_state.splash_shown = False
@@ -26,7 +25,7 @@ if "file_name" not in st.session_state:
     st.session_state.file_name = None
 
 # ============================================================================
-# SPLASH SCREEN (WITH CONFETTI - 3 SECONDS)
+# SPLASH SCREEN WITH CONFETTI (3 SECONDS)
 # ============================================================================
 if not st.session_state.splash_shown:
     import streamlit.components.v1 as components
@@ -41,8 +40,7 @@ if not st.session_state.splash_shown:
                 padding: 0;
                 box-sizing: border-box;
             }
-            
-            .splash-container {
+            .splash {
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -52,119 +50,89 @@ if not st.session_state.splash_shown:
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                z-index: 99999;
-                animation: fadeOut 0.6s ease-in-out 2.8s forwards;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                z-index: 999999;
+                animation: fadeOut 0.5s ease 2.5s forwards;
+                font-family: system-ui, -apple-system, sans-serif;
             }
-            
             @keyframes fadeOut {
                 to {
                     opacity: 0;
                     visibility: hidden;
                 }
             }
-            
-            .splash-content {
+            .content {
                 text-align: center;
-                animation: slideUp 0.8s ease-out;
+                animation: slideUp 0.6s ease-out;
             }
-            
             @keyframes slideUp {
                 from {
                     opacity: 0;
-                    transform: translateY(50px);
+                    transform: translateY(30px);
                 }
                 to {
                     opacity: 1;
                     transform: translateY(0);
                 }
             }
-            
-            .logo-icon {
-                font-size: 100px;
-                animation: bounce 1s ease-in-out;
-                margin-bottom: 20px;
-                display: inline-block;
+            .logo {
+                font-size: 80px;
+                margin-bottom: 16px;
+                animation: bounce 0.8s ease;
             }
-            
             @keyframes bounce {
-                0%, 100% {
-                    transform: translateY(0);
-                }
-                50% {
-                    transform: translateY(-20px);
-                }
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-15px); }
             }
-            
             h1 {
                 color: white;
-                font-size: 48px;
-                margin-bottom: 10px;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+                font-size: 36px;
                 font-weight: 700;
+                margin-bottom: 8px;
             }
-            
-            .subtitle {
+            .sub {
                 color: rgba(255,255,255,0.9);
-                font-size: 18px;
-                margin-bottom: 30px;
-                letter-spacing: 1px;
+                font-size: 16px;
+                margin-bottom: 24px;
             }
-            
             .loader {
-                width: 50px;
-                height: 50px;
-                margin: 20px auto;
-                border: 4px solid rgba(255,255,255,0.3);
+                width: 40px;
+                height: 40px;
+                margin: 16px auto;
+                border: 3px solid rgba(255,255,255,0.3);
                 border-radius: 50%;
                 border-top-color: white;
-                animation: spin 1s ease-in-out infinite;
+                animation: spin 0.8s linear infinite;
             }
-            
             @keyframes spin {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-            
-            .tagline {
-                color: rgba(255,255,255,0.7);
-                font-size: 12px;
-                margin-top: 30px;
-                letter-spacing: 2px;
+                to { transform: rotate(360deg); }
             }
         </style>
     </head>
     <body>
-        <div class="splash-container" id="splash">
-            <div class="splash-content">
-                <div class="logo-icon">✨</div>
+        <div class="splash">
+            <div class="content">
+                <div class="logo">✨</div>
                 <h1>DataWrangler Pro</h1>
-                <div class="subtitle">Where Data Meets Intelligence</div>
+                <div class="sub">Your AI-powered data preparation workspace</div>
                 <div class="loader"></div>
-                <div class="tagline">Precision • Insight • Excellence</div>
             </div>
         </div>
-        
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
         <script>
             (function() {
                 let duration = 2500;
                 let end = Date.now() + duration;
-                
-                function randomInRange(min, max) {
+                function random(min, max) {
                     return Math.random() * (max - min) + min;
                 }
-                
                 (function frame() {
                     confetti({
-                        particleCount: 3,
-                        angle: randomInRange(55, 125),
-                        spread: randomInRange(50, 70),
-                        origin: { x: randomInRange(0, 1), y: randomInRange(0, 0.5) },
-                        colors: ['#ffffff', '#ffd700', '#ff69b4', '#00ff00', '#ff6b6b']
+                        particleCount: 2,
+                        angle: random(60, 120),
+                        spread: random(50, 80),
+                        origin: { x: random(0, 1), y: random(0, 0.5) },
+                        colors: ['#ffffff', '#ffd700', '#ff69b4', '#00ff00']
                     });
-                    
                     if (Date.now() < end) {
                         requestAnimationFrame(frame);
                     }
@@ -181,379 +149,203 @@ if not st.session_state.splash_shown:
     st.rerun()
 
 # ============================================================================
-# CUSTOM CSS (With proper text contrast and consistent icon sizes)
+# CSS - CLEAN AND CONSISTENT
 # ============================================================================
-def load_css():
-    if st.session_state.dark_mode:
-        return """
-        <style>
-        /* DARK MODE - PREMIUM WITH CLEAR TEXT */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        * {
-            font-family: 'Inter', sans-serif !important;
-        }
-        
-        .stApp {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        }
-        
-        /* ALL TEXT - HIGH CONTRAST */
-        h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown, div, .stText {
-            color: #f1f5f9 !important;
-        }
-        
-        .stMarkdown p, .stMarkdown li, .stMarkdown div {
-            color: #e2e8f0 !important;
-        }
-        
-        /* Metric Cards */
-        [data-testid="stMetric"] {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: 1px solid #334155;
-            border-radius: 16px;
-            padding: 20px !important;
-            transition: all 0.2s;
-        }
-        
-        [data-testid="stMetric"]:hover {
-            transform: translateY(-2px);
-            border-color: #6366f1;
-        }
-        
-        [data-testid="stMetricLabel"] {
-            color: #94a3b8 !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-        }
-        
-        [data-testid="stMetricValue"] {
-            color: #facc15 !important;
-            font-size: 28px !important;
-            font-weight: 700 !important;
-        }
-        
-        /* Buttons */
-        .stButton > button {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white !important;
-            border: none;
-            border-radius: 12px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(99,102,241,0.4);
-        }
-        
-        /* Download Buttons */
-        .stDownloadButton > button {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white !important;
-        }
-        
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0f172a, #1e1b4b);
-            border-right: 1px solid #334155;
-        }
-        
-        [data-testid="stSidebar"] * {
-            color: #f1f5f9 !important;
-        }
-        
-        /* Sidebar buttons */
-        [data-testid="stSidebar"] .stButton > button {
-            background: transparent;
-            border: 1px solid #334155;
-            color: #e2e8f0 !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button:hover {
-            background: rgba(99,102,241,0.2);
-            border-color: #6366f1;
-        }
-        
-        /* Expander */
-        .streamlit-expanderHeader {
-            background: #1e293b;
-            border-radius: 12px;
-            color: #f1f5f9 !important;
-        }
-        
-        /* Dataframe */
-        .stDataFrame {
-            background: #1e293b;
-            border-radius: 12px;
-        }
-        
-        /* Alerts */
-        .stAlert {
-            background: #1e293b;
-            border-left: 4px solid #6366f1;
-        }
-        
-        hr {
-            border-color: #334155;
-        }
-        
-        /* Consistent icon sizes */
-        .feature-icon {
-            font-size: 48px;
-            display: inline-block;
-            margin-bottom: 12px;
-        }
-        
-        .sidebar-logo-icon {
-            font-size: 48px;
-            display: inline-block;
-        }
-        </style>
-        """
-    else:
-        return """
-        <style>
-        /* LIGHT MODE - PREMIUM WITH CLEAR TEXT */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        * {
-            font-family: 'Inter', sans-serif !important;
-        }
-        
-        .stApp {
-            background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
-        }
-        
-        /* ALL TEXT - DARK AND READABLE */
-        h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown, div, .stText {
-            color: #0f172a !important;
-        }
-        
-        .stMarkdown p, .stMarkdown li, .stMarkdown div {
-            color: #1e293b !important;
-        }
-        
-        /* Metric Cards */
-        [data-testid="stMetric"] {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 20px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.2s;
-        }
-        
-        [data-testid="stMetric"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-            border-color: #6366f1;
-        }
-        
-        [data-testid="stMetricLabel"] {
-            color: #475569 !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-        }
-        
-        [data-testid="stMetricValue"] {
-            color: #6366f1 !important;
-            font-size: 28px !important;
-            font-weight: 700 !important;
-        }
-        
-        /* Buttons */
-        .stButton > button {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white !important;
-            border: none;
-            border-radius: 12px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(99,102,241,0.4);
-        }
-        
-        /* Download Buttons */
-        .stDownloadButton > button {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white !important;
-        }
-        
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #ffffff, #f8fafc);
-            border-right: 1px solid #e2e8f0;
-        }
-        
-        [data-testid="stSidebar"] * {
-            color: #0f172a !important;
-        }
-        
-        /* Sidebar buttons */
-        [data-testid="stSidebar"] .stButton > button {
-            background: transparent;
-            border: 1px solid #e2e8f0;
-            color: #0f172a !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button:hover {
-            background: #f1f5f9;
-            border-color: #6366f1;
-        }
-        
-        /* Expander */
-        .streamlit-expanderHeader {
-            background: #f1f5f9;
-            border-radius: 12px;
-            color: #0f172a !important;
-        }
-        
-        /* Dataframe */
-        .stDataFrame {
-            background: white;
-            border-radius: 12px;
-        }
-        
-        /* Alerts */
-        .stAlert {
-            background: #fef9e3;
-            border-left: 4px solid #f59e0b;
-        }
-        
-        /* Consistent icon sizes */
-        .feature-icon {
-            font-size: 48px;
-            display: inline-block;
-            margin-bottom: 12px;
-        }
-        
-        .sidebar-logo-icon {
-            font-size: 48px;
-            display: inline-block;
-        }
-        </style>
-        """
-
-st.markdown(load_css(), unsafe_allow_html=True)
+if st.session_state.dark_mode:
+    st.markdown("""
+    <style>
+    .stApp {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    h1, h2, h3, h4, p, label, div, span {
+        color: #ffffff !important;
+    }
+    [data-testid="stMetric"] {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 16px;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #94a3b8 !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: #facc15 !important;
+    }
+    .stButton > button {
+        background: #6366f1;
+        color: white !important;
+        border-radius: 10px;
+    }
+    .stButton > button:hover {
+        background: #8b5cf6;
+    }
+    [data-testid="stSidebar"] {
+        background: #0f172a;
+        border-right: 1px solid #334155;
+    }
+    [data-testid="stSidebar"] * {
+        color: #e2e8f0 !important;
+    }
+    .stAlert {
+        background: #1e293b;
+        border-left: 4px solid #6366f1;
+    }
+    hr {
+        border-color: #334155;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+    .stApp {
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    }
+    h1, h2, h3, h4, p, label, div, span {
+        color: #0f172a !important;
+    }
+    [data-testid="stMetric"] {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    [data-testid="stMetricLabel"] {
+        color: #475569 !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: #6366f1 !important;
+    }
+    .stButton > button {
+        background: #6366f1;
+        color: white !important;
+        border-radius: 10px;
+    }
+    .stButton > button:hover {
+        background: #8b5cf6;
+    }
+    [data-testid="stSidebar"] {
+        background: white;
+        border-right: 1px solid #e2e8f0;
+    }
+    [data-testid="stSidebar"] * {
+        color: #0f172a !important;
+    }
+    .stAlert {
+        background: #fef9e3;
+        border-left: 4px solid #f59e0b;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # ============================================================================
 # SIDEBAR
 # ============================================================================
 with st.sidebar:
-    # Logo section - consistent icon size
     st.markdown("""
-    <div style="text-align: center; padding: 16px 0 8px 0;">
-        <div style="font-size: 48px; line-height: 1;">✨</div>
-        <div style="font-size: 18px; font-weight: 600; margin-top: 8px;">DataWrangler Pro</div>
-        <div style="font-size: 11px; opacity: 0.6;">v2.0</div>
+    <div style="text-align: center; padding: 10px 0;">
+        <div style="font-size: 48px;">✨</div>
+        <div style="font-size: 18px; font-weight: 600;">DataWrangler Pro</div>
+        <div style="font-size: 11px;">v2.0</div>
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown("---")
     
-    # Dark mode toggle
+    # Theme toggle
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("**Theme**")
     with col2:
-        theme_icon = "🌙" if not st.session_state.dark_mode else "☀️"
-        if st.button(theme_icon, help="Toggle theme", use_container_width=True, key="theme_toggle"):
+        if st.button("🌙" if not st.session_state.dark_mode else "☀️", use_container_width=True):
             st.session_state.dark_mode = not st.session_state.dark_mode
             st.rerun()
     
     st.markdown("---")
     
-    # Navigation - consistent button styling
+    # Navigation
     st.markdown("### Navigation")
     
-    pages = {
-        "📂 Upload & Profile": "pages/01_Upload_Profile.py",
-        "🧹 Cleaning Studio": "pages/02_Cleaning_Studio.py",
-        "📊 Visualization": "pages/03_Visualization.py",
-        "📤 Export & Report": "pages/04_Export_Report.py"
-    }
+    if st.button("📂 Upload & Profile", use_container_width=True):
+        st.switch_page("pages/01_Upload_Profile.py")
     
-    for page_name, page_path in pages.items():
-        if st.button(page_name, use_container_width=True, key=page_path):
-            st.switch_page(page_path)
+    if st.button("🧹 Cleaning Studio", use_container_width=True):
+        st.switch_page("pages/02_Cleaning_Studio.py")
+    
+    if st.button("📊 Visualization", use_container_width=True):
+        st.switch_page("pages/03_Visualization.py")
+    
+    if st.button("📤 Export & Report", use_container_width=True):
+        st.switch_page("pages/04_Export_Report.py")
     
     st.markdown("---")
     
-    # Session info
     if st.session_state.df_working is not None:
-        st.success(f"✅ {len(st.session_state.df_working):,} rows • {len(st.session_state.df_working.columns)} cols")
-        
-        if st.button("🔄 Reset Session", use_container_width=True, key="reset_session"):
+        st.success(f"✅ {len(st.session_state.df_working):,} rows")
+        if st.button("🔄 Reset", use_container_width=True):
             if st.session_state.df_original is not None:
                 st.session_state.df_working = st.session_state.df_original.copy()
             st.session_state.transformation_log = []
             st.rerun()
-    else:
-        st.info("📁 No dataset loaded")
     
     st.markdown("---")
-    st.caption("Made with ✨ | IDs: 00017592 & 00018555")
+    st.caption("IDs: 00017592 & 00018555")
 
 # ============================================================================
-# MAIN CONTENT (Landing Page)
+# MAIN CONTENT
 # ============================================================================
 st.markdown("""
-<div style="text-align: center; padding: 2rem 0 1rem;">
-    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">DataWrangler Pro</h1>
-    <p style="font-size: 1.1rem; opacity: 0.8;">Your AI-powered data preparation & visualization workspace</p>
+<div style="text-align: center; padding: 30px 0 20px;">
+    <h1 style="font-size: 42px;">DataWrangler Pro</h1>
+    <p style="font-size: 18px;">Your AI-powered data preparation & visualization workspace</p>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("---")
 
-# Feature cards - CONSISTENT ICON SIZES (all 48px)
+# Feature cards - all with same icon size
 col1, col2, col3, col4 = st.columns(4)
 
-# All icons have consistent styling with fixed font size
-feature_style = """
-<div style="background: {bg}; border-radius: 20px; padding: 1.5rem; text-align: center;
-            border: 1px solid {border}; transition: transform 0.2s, box-shadow 0.2s;">
-    <div style="font-size: 48px; margin-bottom: 12px; line-height: 1;">{icon}</div>
-    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">{title}</div>
-    <div style="font-size: 13px; opacity: 0.7;">{desc}</div>
-</div>
-"""
+bg_color = "#1e293b" if st.session_state.dark_mode else "white"
+border_color = "#334155" if st.session_state.dark_mode else "#e2e8f0"
 
-if st.session_state.dark_mode:
-    cards = [
-        ("📂", "Upload & Profile", "CSV · Excel · JSON"),
-        ("🧹", "Clean & Prepare", "Missing · Duplicates · Scale"),
-        ("📊", "Visualize", "8 chart types · Interactive"),
-        ("📤", "Export", "CSV · Excel · Report")
-    ]
-    bg_color = "#1e293b"
-    border_color = "#334155"
-else:
-    cards = [
-        ("📂", "Upload & Profile", "CSV · Excel · JSON"),
-        ("🧹", "Clean & Prepare", "Missing · Duplicates · Scale"),
-        ("📊", "Visualize", "8 chart types · Interactive"),
-        ("📤", "Export", "CSV · Excel · Report")
-    ]
-    bg_color = "white"
-    border_color = "#e2e8f0"
+with col1:
+    st.markdown(f"""
+    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 16px; padding: 20px; text-align: center;">
+        <div style="font-size: 48px;">📂</div>
+        <div style="font-size: 18px; font-weight: 600;">Upload & Profile</div>
+        <div style="font-size: 12px;">CSV · Excel · JSON</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-for col, (icon, title, desc) in zip([col1, col2, col3, col4], cards):
-    with col:
-        st.markdown(
-            feature_style.format(icon=icon, title=title, desc=desc, bg=bg_color, border=border_color),
-            unsafe_allow_html=True
-        )
+with col2:
+    st.markdown(f"""
+    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 16px; padding: 20px; text-align: center;">
+        <div style="font-size: 48px;">🧹</div>
+        <div style="font-size: 18px; font-weight: 600;">Clean & Prepare</div>
+        <div style="font-size: 12px;">Missing · Duplicates · Scale</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 16px; padding: 20px; text-align: center;">
+        <div style="font-size: 48px;">📊</div>
+        <div style="font-size: 18px; font-weight: 600;">Visualize</div>
+        <div style="font-size: 12px;">8 chart types · Interactive</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown(f"""
+    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 16px; padding: 20px; text-align: center;">
+        <div style="font-size: 48px;">📤</div>
+        <div style="font-size: 18px; font-weight: 600;">Export</div>
+        <div style="font-size: 12px;">CSV · Excel · Report</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("---")
-
-# Info section
 st.info("👈 Use the sidebar to navigate. Start with **Upload & Profile** to load your dataset.")
-
 st.markdown("---")
 st.caption("DataWrangler Pro · Coursework Project — Data Wrangling & Visualization")
