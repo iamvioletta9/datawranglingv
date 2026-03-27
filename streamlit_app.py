@@ -149,91 +149,141 @@ if not st.session_state.splash_shown:
     st.rerun()
 
 # ============================================================================
-# CSS - CLEAN AND CONSISTENT
+# CSS - FIXED TOP BAR (make it visible)
 # ============================================================================
 if st.session_state.dark_mode:
     st.markdown("""
     <style>
+    /* Fix top bar - make it visible */
+    header {
+        background: #1e293b !important;
+        border-bottom: 1px solid #334155 !important;
+    }
+    header * {
+        color: #ffffff !important;
+    }
+    [data-testid="stToolbar"] {
+        color: #ffffff !important;
+    }
+    
     .stApp {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     }
+    
     h1, h2, h3, h4, p, label, div, span {
         color: #ffffff !important;
     }
+    
     [data-testid="stMetric"] {
         background: #1e293b;
         border: 1px solid #334155;
         border-radius: 16px;
     }
+    
     [data-testid="stMetricLabel"] {
         color: #94a3b8 !important;
     }
+    
     [data-testid="stMetricValue"] {
         color: #facc15 !important;
     }
+    
     .stButton > button {
         background: #6366f1;
         color: white !important;
         border-radius: 10px;
     }
+    
     .stButton > button:hover {
         background: #8b5cf6;
     }
+    
     [data-testid="stSidebar"] {
         background: #0f172a;
         border-right: 1px solid #334155;
     }
+    
     [data-testid="stSidebar"] * {
         color: #e2e8f0 !important;
     }
+    
     .stAlert {
         background: #1e293b;
         border-left: 4px solid #6366f1;
     }
+    
     hr {
         border-color: #334155;
+    }
+    
+    /* Remove extra spacing */
+    .block-container {
+        padding-top: 1rem;
     }
     </style>
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
     <style>
+    /* Fix top bar - make it visible */
+    header {
+        background: #ffffff !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+    header * {
+        color: #0f172a !important;
+    }
+    
     .stApp {
         background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
     }
+    
     h1, h2, h3, h4, p, label, div, span {
         color: #0f172a !important;
     }
+    
     [data-testid="stMetric"] {
         background: white;
         border: 1px solid #e2e8f0;
         border-radius: 16px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
+    
     [data-testid="stMetricLabel"] {
         color: #475569 !important;
     }
+    
     [data-testid="stMetricValue"] {
         color: #6366f1 !important;
     }
+    
     .stButton > button {
         background: #6366f1;
         color: white !important;
         border-radius: 10px;
     }
+    
     .stButton > button:hover {
         background: #8b5cf6;
     }
+    
     [data-testid="stSidebar"] {
         background: white;
         border-right: 1px solid #e2e8f0;
     }
+    
     [data-testid="stSidebar"] * {
         color: #0f172a !important;
     }
+    
     .stAlert {
         background: #fef9e3;
         border-left: 4px solid #f59e0b;
+    }
+    
+    /* Remove extra spacing */
+    .block-container {
+        padding-top: 1rem;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -246,7 +296,6 @@ with st.sidebar:
     <div style="text-align: center; padding: 10px 0;">
         <div style="font-size: 48px;">✨</div>
         <div style="font-size: 18px; font-weight: 600;">DataWrangler Pro</div>
-        <div style="font-size: 11px;">v2.0</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -263,9 +312,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Navigation
-    st.markdown("### Navigation")
-    
+    # Navigation - icons only
     if st.button("📂 Upload & Profile", use_container_width=True):
         st.switch_page("pages/01_Upload_Profile.py")
     
@@ -292,18 +339,18 @@ with st.sidebar:
     st.caption("IDs: 00017592 & 00018555")
 
 # ============================================================================
-# MAIN CONTENT
+# MAIN CONTENT - ICONS ONLY (clean, no repetition)
 # ============================================================================
 st.markdown("""
-<div style="text-align: center; padding: 30px 0 20px;">
+<div style="text-align: center; padding: 20px 0 10px;">
     <h1 style="font-size: 42px;">DataWrangler Pro</h1>
-    <p style="font-size: 18px;">Your AI-powered data preparation & visualization workspace</p>
+    <p style="font-size: 16px;">Your AI-powered data preparation & visualization workspace</p>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("---")
 
-# Feature cards - all with same icon size
+# Feature cards - only icons, clean design
 col1, col2, col3, col4 = st.columns(4)
 
 bg_color = "#1e293b" if st.session_state.dark_mode else "white"
@@ -311,41 +358,40 @@ border_color = "#334155" if st.session_state.dark_mode else "#e2e8f0"
 
 with col1:
     st.markdown(f"""
-    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 16px; padding: 20px; text-align: center;">
-        <div style="font-size: 48px;">📂</div>
-        <div style="font-size: 18px; font-weight: 600;">Upload & Profile</div>
-        <div style="font-size: 12px;">CSV · Excel · JSON</div>
+    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 20px; padding: 24px 16px; text-align: center; transition: all 0.2s;">
+        <div style="font-size: 56px; margin-bottom: 12px;">📂</div>
+        <div style="font-size: 16px; font-weight: 600;">Upload & Profile</div>
+        <div style="font-size: 12px; opacity: 0.7;">CSV · Excel · JSON</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
-    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 16px; padding: 20px; text-align: center;">
-        <div style="font-size: 48px;">🧹</div>
-        <div style="font-size: 18px; font-weight: 600;">Clean & Prepare</div>
-        <div style="font-size: 12px;">Missing · Duplicates · Scale</div>
+    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 20px; padding: 24px 16px; text-align: center; transition: all 0.2s;">
+        <div style="font-size: 56px; margin-bottom: 12px;">🧹</div>
+        <div style="font-size: 16px; font-weight: 600;">Clean & Prepare</div>
+        <div style="font-size: 12px; opacity: 0.7;">Missing · Duplicates · Scale</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown(f"""
-    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 16px; padding: 20px; text-align: center;">
-        <div style="font-size: 48px;">📊</div>
-        <div style="font-size: 18px; font-weight: 600;">Visualize</div>
-        <div style="font-size: 12px;">8 chart types · Interactive</div>
+    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 20px; padding: 24px 16px; text-align: center; transition: all 0.2s;">
+        <div style="font-size: 56px; margin-bottom: 12px;">📊</div>
+        <div style="font-size: 16px; font-weight: 600;">Visualize</div>
+        <div style="font-size: 12px; opacity: 0.7;">8 chart types · Interactive</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col4:
     st.markdown(f"""
-    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 16px; padding: 20px; text-align: center;">
-        <div style="font-size: 48px;">📤</div>
-        <div style="font-size: 18px; font-weight: 600;">Export</div>
-        <div style="font-size: 12px;">CSV · Excel · Report</div>
+    <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 20px; padding: 24px 16px; text-align: center; transition: all 0.2s;">
+        <div style="font-size: 56px; margin-bottom: 12px;">📤</div>
+        <div style="font-size: 16px; font-weight: 600;">Export</div>
+        <div style="font-size: 12px; opacity: 0.7;">CSV · Excel · Report</div>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown("---")
 st.info("👈 Use the sidebar to navigate. Start with **Upload & Profile** to load your dataset.")
-st.markdown("---")
 st.caption("DataWrangler Pro · Coursework Project — Data Wrangling & Visualization")
