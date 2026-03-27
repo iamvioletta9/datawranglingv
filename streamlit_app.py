@@ -1,64 +1,53 @@
 import streamlit as st
+import time
 
 # =============================================================================
 # CONFIG
 # =============================================================================
 st.set_page_config(
     page_title="DataWrangler Pro",
-    page_icon="✨",
-    layout="wide"
+    page_icon="🔬",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # =============================================================================
 # SESSION STATE
 # =============================================================================
-if "df" not in st.session_state:
-    st.session_state.df = None
+if "intro_done" not in st.session_state:
+    st.session_state.intro_done = False
 
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
-# =============================================================================
-# THEME (SAFE CSS — NO GLOBAL BREAKING)
-# =============================================================================
-def apply_theme():
-    if st.session_state.dark_mode:
-        st.markdown("""
-        <style>
-        .card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            color: white;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <style>
-        .card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            color: #0f172a;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+if "df" not in st.session_state:
+    st.session_state.df = None
 
-apply_theme()
+if "df_original" not in st.session_state:
+    st.session_state.df_original = None
+
+if "log" not in st.session_state:
+    st.session_state.log = []
+
+if "confetti_shown" not in st.session_state:
+    st.session_state.confetti_shown = False
 
 # =============================================================================
-# SIDEBAR (PROPER NAVIGATION)
+# CSS (ТВОЙ — НЕ МЕНЯЮ)
+# =============================================================================
+# ВАЖНО: вставь сюда свой LIGHT_CSS и DARK_CSS без изменений
+
+st.markdown(DARK_CSS if st.session_state.dark_mode else LIGHT_CSS, unsafe_allow_html=True)
+
+# =============================================================================
+# SIDEBAR
 # =============================================================================
 with st.sidebar:
-    st.markdown("## ✨ DataWrangler Pro")
 
-    # theme toggle
-    if st.button("🌙 Toggle Theme"):
+    st.markdown("### 🔬 DataWrangler Pro")
+
+    dm_label = "☀️ Light mode" if st.session_state.dark_mode else "🌙 Dark mode"
+    if st.button(dm_label):
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
 
@@ -66,129 +55,141 @@ with st.sidebar:
 
     page = st.radio(
         "Navigation",
-        ["Upload", "Cleaning", "Visualization", "Export", "AI Assistant"],
+        ["Home", "Upload & Overview", "Cleaning", "Visualization", "Export", "AI"],
         format_func=lambda x: {
-            "Upload": "📂 Upload",
+            "Home": "🏠 Home",
+            "Upload & Overview": "📂 Upload",
             "Cleaning": "🧹 Cleaning",
             "Visualization": "📊 Visualization",
             "Export": "📤 Export",
-            "AI Assistant": "🤖 AI Assistant"
+            "AI": "🤖 AI Assistant"
         }[x]
     )
 
 # =============================================================================
-# CARD COMPONENT
+# CONFETTI (3 seconds)
 # =============================================================================
-def card(icon, title, desc):
-    st.markdown(f"""
-    <div class="card">
-        <div style="font-size:50px">{icon}</div>
-        <div style="font-weight:600; margin-top:10px">{title}</div>
-        <div style="font-size:12px; opacity:0.7">{desc}</div>
+if not st.session_state.confetti_shown:
+    st.markdown("""
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script>
+    let duration = 3000;
+    let end = Date.now() + duration;
+
+    (function frame() {
+        confetti({
+            particleCount: 5,
+            angle: 60,
+            spread: 80,
+            origin: { x: Math.random(), y: Math.random() - 0.2 }
+        });
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+    }());
+    </script>
+    """, unsafe_allow_html=True)
+
+    st.session_state.confetti_shown = True
+
+# =============================================================================
+# INTRO SCREEN (ONCE)
+# =============================================================================
+if not st.session_state.intro_done:
+
+    st.markdown("""
+    <div style="text-align:center; padding:5rem 2rem 3rem;">
+      <div style="font-size:64px;">🔬</div>
+      <h1>DataWrangler Pro</h1>
+      <p>Your AI-powered data preparation workspace</p>
+      <div style="margin-top:20px;">
+        📂 Upload · 🧹 Clean · 📊 Visualize · 📤 Export
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
-# =============================================================================
-# MAIN HOME PAGE
-# =============================================================================
-if page == "Upload":
+    bar = st.progress(0, text="Initializing...")
 
-    st.title("DataWrangler Pro")
+    for pct in [20, 50, 80, 100]:
+        time.sleep(0.4)
+        bar.progress(pct)
+
+    time.sleep(0.3)
+    bar.empty()
+
+    st.session_state.intro_done = True
+    st.rerun()
+
+# =============================================================================
+# HOME PAGE (ONLY UI — NO UPLOAD HERE)
+# =============================================================================
+if page == "Home":
+
+    st.markdown("## 🔬 DataWrangler Pro")
     st.caption("AI-powered data preparation & visualization workspace")
 
     st.markdown("---")
 
-    col1, col2, col3, col4 = st.columns(4)
+    if st.session_state.dark_mode:
+        cards = [
+            ("#1e3a5f", "#93c5fd", "📂", "Upload & Profile", "CSV · Excel · JSON"),
+            ("#14532d", "#86efac", "🧹", "Clean & Prepare", "Missing · Duplicates"),
+            ("#3b0764", "#d8b4fe", "📊", "Visualize", "Charts · Filters"),
+            ("#431407", "#fdba74", "📤", "Export", "CSV · Report"),
+        ]
+    else:
+        cards = [
+            ("#eff6ff", "#1e40af", "📂", "Upload & Profile", "CSV · Excel · JSON"),
+            ("#f0fdf4", "#166534", "🧹", "Clean & Prepare", "Missing · Duplicates"),
+            ("#fdf4ff", "#6b21a8", "📊", "Visualize", "Charts · Filters"),
+            ("#fff7ed", "#9a3412", "📤", "Export", "CSV · Report"),
+        ]
 
-    with col1:
-        card("📂", "Upload", "CSV · Excel · JSON")
+    cols = st.columns(4)
 
-    with col2:
-        card("🧹", "Clean", "Missing · Duplicates")
-
-    with col3:
-        card("📊", "Visualize", "Charts")
-
-    with col4:
-        card("📤", "Export", "Reports")
+    for col, (bg, color, icon, title, sub) in zip(cols, cards):
+        with col:
+            st.markdown(f"""
+            <div style="background:{bg}; padding:20px; border-radius:12px;">
+                <div style="font-size:30px">{icon}</div>
+                <div style="font-weight:600; color:{color}">{title}</div>
+                <div style="font-size:12px; color:{color}">{sub}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
     st.markdown("---")
-
-    file = st.file_uploader("Upload dataset", type=["csv", "xlsx"])
-
-    if file:
-        import pandas as pd
-        if file.name.endswith(".csv"):
-            df = pd.read_csv(file)
-        else:
-            df = pd.read_excel(file)
-
-        st.session_state.df = df
-        st.success("File uploaded successfully")
-        st.dataframe(df.head())
+    st.info("👈 Use the sidebar to start with Upload section")
 
 # =============================================================================
-# CLEANING
+# PLACEHOLDER PAGES (CW STRUCTURE)
 # =============================================================================
+elif page == "Upload & Overview":
+    st.title("📂 Upload & Overview")
+    st.warning("Move your upload logic here (separate file recommended)")
+
 elif page == "Cleaning":
     st.title("🧹 Cleaning Studio")
+    st.warning("Cleaning logic goes here")
 
-    if st.session_state.df is None:
-        st.warning("Upload data first")
-    else:
-        df = st.session_state.df
-
-        if st.button("Remove duplicates"):
-            df = df.drop_duplicates()
-            st.session_state.df = df
-            st.success("Duplicates removed")
-
-        st.dataframe(df.head())
-
-# =============================================================================
-# VISUALIZATION
-# =============================================================================
 elif page == "Visualization":
-    st.title("📊 Visualization")
+    st.title("📊 Visualization Builder")
+    st.warning("Charts logic goes here")
 
-    if st.session_state.df is None:
-        st.warning("Upload data first")
-    else:
-        df = st.session_state.df
-
-        col = st.selectbox("Select column", df.columns)
-
-        st.bar_chart(df[col])
-
-# =============================================================================
-# EXPORT
-# =============================================================================
 elif page == "Export":
-    st.title("📤 Export")
+    st.title("📤 Export & Report")
+    st.warning("Export logic goes here")
 
-    if st.session_state.df is None:
-        st.warning("Upload data first")
-    else:
-        st.download_button(
-            "Download CSV",
-            st.session_state.df.to_csv(index=False),
-            "data.csv"
-        )
-
-# =============================================================================
-# AI ASSISTANT
-# =============================================================================
-elif page == "AI Assistant":
+elif page == "AI":
     st.title("🤖 AI Assistant")
 
     if st.session_state.df is None:
         st.warning("Upload data first")
     else:
-        st.write("Dataset overview:")
+        st.write("Basic dataset insights:")
         st.write(st.session_state.df.describe())
 
-        question = st.text_input("Ask something about your data")
+        query = st.text_input("Ask about your data")
 
         if st.button("Analyze"):
-            st.info("Basic insight:")
+            st.info("Correlation matrix:")
             st.write(st.session_state.df.corr(numeric_only=True))
