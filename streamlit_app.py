@@ -20,7 +20,7 @@ if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
 # =============================================================================
-# THEME (UNCHANGED)
+# THEME
 # =============================================================================
 def apply_theme():
     if st.session_state.dark_mode:
@@ -89,33 +89,29 @@ def card(icon, title, desc):
     """, unsafe_allow_html=True)
 
 # =============================================================================
-# UPLOAD PAGE ONLY
+# PAGES
 # =============================================================================
+
+# -------------------- UPLOAD --------------------
 if page == "Upload":
     st.title("DataWrangler Pro")
     st.caption("AI-powered data preparation & visualization workspace")
 
     st.markdown("---")
-
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         card("📂", "Upload", "CSV · Excel · JSON")
-
     with col2:
         card("🧹", "Clean", "Missing · Duplicates")
-
     with col3:
         card("📊", "Visualize", "Charts")
-
     with col4:
         card("📤", "Export", "Reports")
-
     st.markdown("---")
 
-    # Uploader exists only here
+    # Uploader ONLY here
     file = st.file_uploader("Upload dataset", type=["csv", "xlsx", "json"])
-
     if file:
         try:
             if file.name.endswith(".csv"):
@@ -138,9 +134,7 @@ if page == "Upload":
         except Exception as e:
             st.error(f"Error loading file: {e}")
 
-# =============================================================================
-# CLEANING
-# =============================================================================
+# -------------------- CLEANING --------------------
 elif page == "Cleaning":
     st.title("🧹 Cleaning Studio")
 
@@ -148,17 +142,13 @@ elif page == "Cleaning":
         st.warning("Upload data first")
     else:
         df = st.session_state.df
-
         if st.button("Remove duplicates"):
             df = df.drop_duplicates()
             st.session_state.df = df
             st.success("Duplicates removed")
-
         st.dataframe(df.head())
 
-# =============================================================================
-# VISUALIZATION
-# =============================================================================
+# -------------------- VISUALIZATION --------------------
 elif page == "Visualization":
     st.title("📊 Visualization")
 
@@ -169,9 +159,7 @@ elif page == "Visualization":
         col = st.selectbox("Select column", df.columns)
         st.bar_chart(df[col])
 
-# =============================================================================
-# EXPORT
-# =============================================================================
+# -------------------- EXPORT --------------------
 elif page == "Export":
     st.title("📤 Export")
 
@@ -184,9 +172,7 @@ elif page == "Export":
             "data.csv"
         )
 
-# =============================================================================
-# AI ASSISTANT
-# =============================================================================
+# -------------------- AI ASSISTANT --------------------
 elif page == "AI Assistant":
     st.title("🤖 AI Assistant")
 
@@ -195,9 +181,7 @@ elif page == "AI Assistant":
     else:
         st.write("Dataset overview:")
         st.write(st.session_state.df.describe())
-
         question = st.text_input("Ask something about your data")
-
         if st.button("Analyze"):
             st.info("Correlation matrix:")
             st.write(st.session_state.df.corr(numeric_only=True))
